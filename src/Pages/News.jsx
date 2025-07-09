@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
 import { HiMiniTrash } from "react-icons/hi2";
-import AddNewsForm from "../components/AddNewsForm";
+import AddNewsForm from "../Components/AddNewsForm";
 import ModalReadMore from "../Components/ModalReadMore";
 import {
   useGetAllNewsQuery,
