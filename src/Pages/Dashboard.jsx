@@ -4,7 +4,7 @@ import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { MdPendingActions } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useGetAllNewsQuery } from '../redux/newsAPI';
+import { useGetAllNewsQuery } from '../Redux/Categories';
 
 
 const Dashboard = () => {
