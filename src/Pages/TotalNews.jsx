@@ -4,10 +4,14 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 import { useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useSelector } from 'react-redux';
-import { useGetAllNewsQuery, useUpdateNewsMutation, useDeleteNewsMutation } from '../Redux/newsAPI.js';
-import RenderRichContent from './RenderRichContent .jsx';
+import {
+  useGetAllNewsQuery,
+  useUpdateNewsMutation,
+  useDeleteNewsMutation,
+} from '../Redux/newsAPI.js';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import AddNewsForm from '../Components/AddNewsForm.jsx';
 
 const TotalNews = () => {
   const reporter = useSelector((state) => state.auth);
@@ -64,37 +68,9 @@ const TotalNews = () => {
       MainHeadline: product.MainHeadline || '',
       Subheadline: product.Subheadline || '',
       Description: product.Description || '',
-      image: product.image || '',
+      serviceId: item.serviceId || '',
+      subcategoryId: item.subcategoryId || '',
     });
-  };
-
-  const handleEditChange = (e) => {
-    setEditModalData({
-      ...editModalData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleUpdateSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      formData.append('MainHeadline', editModalData.MainHeadline);
-      formData.append('Subheadline', editModalData.Subheadline);
-      formData.append('Description', editModalData.Description);
-      formData.append('reporterId', reporterId);
-
-      if (editModalData.image instanceof File) {
-        formData.append('image', editModalData.image);
-      }
-
-      await updateNews({ id: editModalData._id, updatedData: formData }).unwrap();
-      toast.success("News updated successfully!");
-      setEditModalData(null);
-    } catch (err) {
-      toast.error("Update failed!");
-      console.error(err);
-    }
   };
 
   return (
@@ -109,27 +85,16 @@ const TotalNews = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
           {filteredNews.map((item, index) => (
-            <div
-              key={index}
-              className="bg-[#FFFFFF9C] rounded shadow-md p-4 h-full max-h-[500px] overflow-y-scroll flex flex-col justify-between"
-            >
+            <div key={index} className="bg-[#FFFFFF9C] rounded shadow-md p-4 h-full max-h-[500px] overflow-y-scroll flex flex-col justify-between">
               <div>
                 <h1 className="text-sm text-[#0000006B] font-normal mb-2">
                   {item.subcategoryName}
                 </h1>
 
                 {item.product.image?.endsWith(".mp4") ? (
-                  <video
-                    src={item.product.image}
-                    className="w-full h-[200px] mb-4 rounded object-cover"
-                    controls
-                  />
+                  <video src={item.product.image} className="w-full h-[200px] mb-4 rounded object-cover" controls />
                 ) : (
-                  <img
-                    src={item.product.image || mb}
-                    alt="News Banner"
-                    className="w-full h-[200px] mb-4 rounded object-cover"
-                  />
+                  <img src={item.product.image || mb} alt="News Banner" className="w-full h-[200px] mb-4 rounded object-cover" />
                 )}
 
                 <div className="flex justify-between items-center text-sm text-gray-500 mb-4">
@@ -155,31 +120,18 @@ const TotalNews = () => {
 
                 <div
                   className="mb-2 font-normal text-xl max-h-[60px] overflow-hidden text-ellipsis line-clamp-2"
-                  dangerouslySetInnerHTML={{
-                    __html: item.product.MainHeadline || 'Untitled News',
-                  }}
+                  dangerouslySetInnerHTML={{ __html: item.product.MainHeadline || 'Untitled News' }}
                 />
               </div>
 
               <div className="flex justify-between items-center mt-auto pt-4">
-                <button
-                  onClick={() => handleReadMore(item)}
-                  className="text-red-600 border-b border-red-400 hover:text-red-700"
-                >
+                <button onClick={() => handleReadMore(item)} className="text-red-600 border-b border-red-400 hover:text-red-700">
                   Read More
                 </button>
 
                 <div className="flex gap-4 text-xl">
-                  <FaEdit
-                    className="text-blue-500 hover:text-blue-700 cursor-pointer"
-                    title="Update"
-                    onClick={() => handleEdit(item)}
-                  />
-                  <FaTrash
-                    className="text-red-500 hover:text-red-700 cursor-pointer"
-                    title="Delete"
-                    onClick={() => handleDeleteNews(item.product._id)}
-                  />
+                  <FaEdit className="text-blue-500 hover:text-blue-700 cursor-pointer" title="Update" onClick={() => handleEdit(item)} />
+                  <FaTrash className="text-red-500 hover:text-red-700 cursor-pointer" title="Delete" onClick={() => handleDeleteNews(item.product._id)} />
                 </div>
               </div>
             </div>
@@ -187,108 +139,56 @@ const TotalNews = () => {
         </div>
       )}
 
-      {/* Read More Modal */}
+      {/* View Modal */}
       {showModal && selectedNews && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 w-[90%] md:w-[60%] lg:w-[50%] max-h-[90vh] overflow-y-auto relative">
-            <button
-              onClick={closeModal}
-              className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-red-600"
-            >
+            <button onClick={closeModal} className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-red-600">
               &times;
             </button>
 
-            <div className="text-lg font-bold mb-2" dangerouslySetInnerHTML={{
-              __html: selectedNews?.product?.MainHeadline || 'No Title',
-            }} />
-
-            <div
-              className="text-sm text-gray-600 mb-4"
-              dangerouslySetInnerHTML={{
-                __html: selectedNews?.product?.Subheadline || '',
-              }}
-            />
+            <div className="text-lg font-bold mb-2" dangerouslySetInnerHTML={{ __html: selectedNews?.product?.MainHeadline || 'No Title' }} />
+            <div className="text-sm text-gray-600 mb-4" dangerouslySetInnerHTML={{ __html: selectedNews?.product?.Subheadline || '' }} />
 
             {selectedNews.product.image?.endsWith(".mp4") ? (
-              <video
-                src={selectedNews.product.image}
-                controls
-                className="w-full rounded mb-4 max-h-[400px] object-contain"
-              />
+              <video src={selectedNews.product.image} controls className="w-full rounded mb-4 max-h-[400px] object-contain" />
             ) : (
-              <img
-                src={selectedNews.product.image || mb}
-                alt="Modal Banner"
-                className="w-full rounded mb-4 max-h-[400px] object-contain"
-              />
+              <img src={selectedNews.product.image || mb} alt="Modal Banner" className="w-full rounded mb-4 max-h-[400px] object-contain" />
             )}
 
-          <div className="text-base text-black leading-relaxed prose max-w-none break-words">
-              <RenderRichContent html={selectedNews?.product?.Description || '<p>सविस्तर बातमी लवकरच उपलब्ध होईल.</p>'} />
+            <div className="text-base text-black leading-relaxed prose max-w-full break-words">
+              <div className="custom-news-content" dangerouslySetInnerHTML={{ __html: selectedNews?.product?.Description }} />
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit Modal */}
+      {/* Edit Modal with AddNewsForm */}
       {editModalData && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[90%] md:w-[60%] lg:w-[40%] max-h-[90vh] overflow-y-auto relative space-y-4">
-            <h2 className="text-lg font-bold text-center">Edit News</h2>
-            <form onSubmit={handleUpdateSubmit} className="space-y-4">
+          <div className="bg-white rounded-lg p-6 w-[90%] md:w-[80%] lg:w-[60%] max-h-[95vh] overflow-y-auto relative">
+            <button
+              onClick={() => setEditModalData(null)}
+              className="absolute top-2 right-4 text-2xl text-gray-600 hover:text-red-600"
+            >
+              &times;
+            </button>
 
-              <ReactQuill
-                theme="snow"
-                value={editModalData.MainHeadline}
-                onChange={(value) =>
-                  handleEditChange({ target: { name: "MainHeadline", value } })
+            <AddNewsForm
+              buttonLabel="Update News"
+              defaultValues={editModalData}
+              onSubmit={async (formData) => {
+                try {
+                  formData.append("reporterId", reporterId);
+                  await updateNews({ id: editModalData._id, updatedData: formData }).unwrap();
+                  toast.success("News updated successfully!");
+                  setEditModalData(null);
+                } catch (err) {
+                  toast.error("Update failed!");
+                  console.error(err);
                 }
-              />
-
-              <ReactQuill
-                theme="snow"
-                value={editModalData.Subheadline}
-                onChange={(value) =>
-                  handleEditChange({ target: { name: "Subheadline", value } })
-                }
-              />
-
-              <ReactQuill
-                theme="snow"
-                value={editModalData.Description}
-                onChange={(value) =>
-                  handleEditChange({ target: { name: "Description", value } })
-                }
-              />
-
-              <input
-                type="file"
-                accept="image/*,video/*"
-                onChange={(e) =>
-                  setEditModalData({ ...editModalData, image: e.target.files[0] })
-                }
-                className="w-full border p-2 rounded"
-              />
-
-              <div className="flex justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => setEditModalData(null)}
-                  className="border px-4 py-2 rounded text-gray-600"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className={`bg-[#12294A] text-white px-6 py-2 rounded transition ${
-                    loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                  }`}
-                >
-                  {loading ? 'Updating...' : 'Update'}
-                </button>
-              </div>
-            </form>
+              }}
+            />
           </div>
         </div>
       )}

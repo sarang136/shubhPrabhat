@@ -20,10 +20,10 @@ const AppRoutes = () => {
     <Routes>
       {isAuthPage ? (
         <>
-          {/* Make / go to SignUp page */}
           {/* <Route path="/" element={<SignUp />} /> */}
           <Route path="/" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+
         </>
       ) : (
         <Route path="/" element={<AdminLayout />}>
@@ -33,7 +33,7 @@ const AppRoutes = () => {
           <Route path="blogs" element={<Blogs />} />
           {/* <Route path="add-news" element={<AddNews />} /> */}
         </Route>
-      )}
+      )} 
 
       <Route path="*" element={<div>404 Page Not Found</div>} />
     </Routes>

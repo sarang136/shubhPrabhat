@@ -1,213 +1,290 @@
 import React, { useState } from "react";
-import { FiUpload } from "react-icons/fi";
-import { useSelector } from "react-redux";
-import { useGetAllCategoriesQuery, useGetAllSubCategoriesQuery } from "../Redux/Categories";
-import { useAddNewsMutation } from "../Redux/newsAPI";
-import { toast } from "react-toastify";
+import {
+  FaRegEye,
+  FaRegBookmark,
+  FaBookmark,
+  FaHeart,
+} from "react-icons/fa";
+import { CiEdit } from "react-icons/ci";
+import { HiMiniTrash } from "react-icons/hi2";
+import AddNewsForm from "../components/AddNewsForm";
+import ModalReadMore from "../Components/ModalReadMore";
+import {
+  useGetAllNewsQuery,
+  useDeleteNewsMutation,
+  useAddNewsMutation,
+  useUpdateNewsMutation,
+} from "../redux/newsAPI";
 import { useNavigate } from "react-router-dom";
-import ReactQuill from "react-quill";
-import 'react-quill/dist/quill.snow.css';
+import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 
-const quillModules = {
-  toolbar: [
-    ['bold', 'italic', 'underline'],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    ['link'],
-    ['clean'],
-  ],
-};
-
-const quillFormats = [
-  'bold', 'italic', 'underline',
-  'list', 'bullet',
-  'link',
-];
-
-const AddNewsForm = ({ buttonLabel = "+ Add News", defaultValues = {} }) => {
-  const { data: categoryData = [] } = useGetAllCategoriesQuery();
-  const [selectedCategoryId, setSelectedCategoryId] = useState(defaultValues.serviceId || "");
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState(defaultValues.subcategoryId || "");
-  const [mainHeadline, setMainHeadline] = useState(defaultValues.MainHeadline || "");
-  const [subheadline, setSubheadline] = useState(defaultValues.Subheadline || "");
-  const [description, setDescription] = useState(defaultValues.Description || "");
-  const [mediaFile, setMediaFile] = useState(null);
-  const [previewURL, setPreviewURL] = useState(null);
-
+const AddNews = () => {
   const auth = useSelector((state) => state.auth);
   const reporterId = auth?.user?.reporter?._id;
 
-  const { data: subCategoryData, isFetching } = useGetAllSubCategoriesQuery(selectedCategoryId, {
-    skip: !selectedCategoryId,
-  });
-
-  const subcategories = subCategoryData?.product?.subcategories || [];
-
-  const [addNews, { isLoading }] = useAddNewsMutation();
   const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
+  const [readMoreNews, setReadMoreNews] = useState(null);
+  const [modalMode, setModalMode] = useState("add");
+  const [editingNews, setEditingNews] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMediaFile(file);
-      setPreviewURL(URL.createObjectURL(file));
-    }
+  const {
+    data,
+    isLoading,
+    isError,
+    refetch,
+    isFetching,
+  } = useGetAllNewsQuery(reporterId);
+
+  console.log(data)
+  const news = data?.data || [];
+
+  const [addNews] = useAddNewsMutation(reporterId);
+  const [deleteSubCategory] = useDeleteNewsMutation();
+  const [updateNews] = useUpdateNewsMutation();
+
+  const openAddModal = () => {
+    setModalMode("add");
+    setEditingNews(null);
+    setShowModal(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const openEditModal = (newsItem) => {
+    setModalMode("edit");
+    setEditingNews(newsItem);
+    setShowModal(true);
+  };
 
-    if (
-      !selectedCategoryId || !selectedSubCategoryId ||
-      !mainHeadline || !subheadline || !description ||
-      !mediaFile || !reporterId
-    ) {
-      alert("Please fill all fields.");
-      return;
+const handleModalSubmit = async (formData) => {
+  try {
+    if (modalMode === "add") {
+      if (
+        !formData.get("MainHeadline") ||
+        !formData.get("Subheadline") ||
+        !formData.get("Description") ||
+        !formData.get("image") ||
+        !formData.get("serviceIds") ||
+        !formData.get("subcategoryMap")
+      ) {
+        toast.error("सर्व फील्ड आवश्यक आहेत (including image, services, subcategories)");
+        return;
+      }
+
+      await addNews(formData).unwrap();
+      toast.success("News added successfully");
+    } else {
+      const updatedFormData = new FormData();
+
+      for (let [key, value] of formData.entries()) {
+        // serviceId
+        if (
+          key === "serviceIds" &&
+          value !== JSON.stringify([editingNews?.serviceId])
+        ) {
+          updatedFormData.append(key, value);
+        }
+
+        // subcategoryMap
+        else if (
+          key === "subcategoryMap" &&
+          value !== JSON.stringify({ [editingNews?.serviceId]: [editingNews?.subcategoryId] })
+        ) {
+          updatedFormData.append(key, value);
+        }
+
+        // mediaFile
+        else if (key === "image" && value instanceof File) {
+          updatedFormData.append(key, value);
+        }
+
+        // MainHeadline, Subheadline, Description
+        else if (
+          ["MainHeadline", "Subheadline", "Description", "reporterId"].includes(key) &&
+          value !== editingNews?.product?.[key]
+        ) {
+          updatedFormData.append(key, value);
+        }
+      }
+
+      const hasChanges = [...updatedFormData.keys()].length > 0;
+
+      if (!hasChanges) {
+        toast.info("No changes detected.");
+        return;
+      }
+
+      // ✅ LOG UPDATED KEYS AND VALUES
+      console.log("🧾 Updated keys:");
+      for (let [key, value] of updatedFormData.entries()) {
+        console.log(`${key}:`, value);
+      }
+
+      console.log("✅ Ready to update:", editingNews.product._id);
+      await updateNews({
+        id: editingNews.product._id,
+        updatedFormData,
+      }).unwrap();
+
+      toast.success("News updated successfully");
     }
 
-    const formData = new FormData();
-    formData.append("serviceId", selectedCategoryId);
-    formData.append("subcategoryId", selectedSubCategoryId);
-    formData.append("MainHeadline", mainHeadline);
-    formData.append("Subheadline", subheadline);
-    formData.append("Description", description);
-    formData.append("image", mediaFile); // image or video
-    formData.append("reporterId", reporterId);
+    setShowModal(false);
+    refetch();
+  } catch (err) {
+    console.error("❌ Submit Error:", err);
+    toast.error("Failed to submit news.");
+  }
+};
+
+
+
+  const handleDelete = async (newsId) => {
+    const confirm = window.confirm("Are you sure you want to delete this news?");
+    if (!confirm) return;
 
     try {
-      await addNews(formData).unwrap();
-      toast.success("News added successfully!");
-      navigate("/totalnews");
-
-      // Reset form
-      setSelectedCategoryId("");
-      setSelectedSubCategoryId("");
-      setMainHeadline("");
-      setSubheadline("");
-      setDescription("");
-      setMediaFile(null);
-      setPreviewURL(null);
-    } catch (error) {
-      console.error("Failed to add news:", error);
-      alert("Something went wrong.");
+      await deleteSubCategory(newsId).unwrap();
+      toast.success("News deleted successfully");
+      refetch();
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete news");
     }
   };
 
   return (
-    <div className="flex items-center justify-center bg-gray-100 font-tiro py-10 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 sm:p-8 md:p-10 rounded shadow-md w-full sm:w-10/12 lg:w-10/12 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
-        encType="multipart/form-data"
-      >
-        {/* Category */}
-        <select
-          value={selectedCategoryId}
-          onChange={(e) => {
-            setSelectedCategoryId(e.target.value);
-            setSelectedSubCategoryId("");
-          }}
-          className="border border-gray-300 p-2 rounded"
-        >
-          <option value="">Select Category</option>
-          {categoryData.map((cat) => (
-            <option key={cat._id} value={cat._id}>{cat.name}</option>
-          ))}
-        </select>
-
-        {/* Subcategory */}
-        <select
-          value={selectedSubCategoryId}
-          onChange={(e) => setSelectedSubCategoryId(e.target.value)}
-          className="border border-gray-300 p-2 rounded"
-          disabled={!selectedCategoryId || isFetching}
-        >
-          <option value="">{isFetching ? "Loading Subjects..." : "Select Subject"}</option>
-          {subcategories.length > 0 ? (
-            subcategories.map((sub) => (
-              <option key={sub._id} value={sub._id}>{sub.name}</option>
-            ))
-          ) : (
-            !isFetching && <option disabled>No subjects available</option>
-          )}
-        </select>
-
-        {/* Main Headline */}
-        <div className="col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Main Headline</label>
-          <ReactQuill
-            theme="snow"
-            value={mainHeadline}
-            onChange={setMainHeadline}
-            modules={quillModules}
-            formats={quillFormats}
-            placeholder="Write main headline..."
-          />
-        </div>
-
-        {/* Subheadline */}
-        <div className="col-span-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Subheadline</label>
-          <ReactQuill
-            theme="snow"
-            value={subheadline}
-            onChange={setSubheadline}
-            modules={quillModules}
-            formats={quillFormats}
-            placeholder="Write subheadline..."
-          />
-        </div>
-
-        {/* Description */}
-        <div className="col-span-1 md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <ReactQuill
-            theme="snow"
-            value={description}
-            onChange={setDescription}
-            modules={quillModules}
-            formats={quillFormats}
-            placeholder="Write description..."
-          />
-        </div>
-
-        {/* Upload Image or Video */}
-        <label className="border border-gray-300 p-4 rounded flex flex-col items-center justify-center cursor-pointer h-full overflow-hidden col-span-1 md:col-span-2">
-          <FiUpload className="mb-2 text-gray-500" size={20} />
-          <span className="text-gray-500 text-sm">{mediaFile ? mediaFile.name : "Upload Image / Video"}</span>
+    <div className="font-normal font-tiro">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center m-2 space-y-2 sm:space-y-0 sm:space-x-4">
+        <h2 className="text-lg">Total News ({news.length})</h2>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
           <input
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFileChange}
-            className="hidden"
+            type="text"
+            placeholder="Search by headline..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="px-3 py-1 border rounded w-full sm:w-64"
           />
-        </label>
+          <button
+            className="bg-[#0f1e36] text-white px-4 py-1 rounded w-full sm:w-auto"
+            onClick={openAddModal}
+          >
+            + Add News
+          </button>
+        </div>
+      </div>
 
-        {/* Preview */}
-        {previewURL && (
-          <div className="col-span-1 md:col-span-2">
-            {mediaFile?.type?.startsWith("video") ? (
-              <video controls className="w-full max-h-[300px] rounded">
-                <source src={previewURL} type={mediaFile.type} />
-                Your browser does not support the video tag.
-              </video>
-            ) : (
-              <img src={previewURL} alt="preview" className="w-full max-h-[300px] object-contain rounded" />
-            )}
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 bg-[#D9D9D980] p-4 max-h-[80vh] overflow-y-scroll">
+        {isLoading || isFetching ? (
+          <p className="col-span-full text-center text-blue-600">Loading...</p>
+        ) : isError ? (
+          <p className="col-span-full text-center text-[#E60023]">Failed to load news.</p>
+        ) : news.filter((n) =>
+            n.product?.MainHeadline?.toLowerCase().includes(searchQuery.toLowerCase())
+          ).length === 0 ? (
+          <p className="col-span-full text-center">No news found.</p>
+        ) : (
+          news
+            .filter((n) =>
+              n.product?.MainHeadline?.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map((n, i) => (
+              <div key={i}>
+                <div className="p-4 shadow rounded bg-[#FFFFFF9C] flex flex-col h-[50vh]">
+                  <div className="text-[#0000006B] mb-2 text-sm">
+                    {n.subcategoryName}
+                  </div>
+
+                  <div className="w-full h-48 sm:h-36 lg:h-48 overflow-hidden rounded mb-2 bg-[#D9D9D9]">
+                    {n.product.image?.match(/\.(mp4|webm|ogg)$/i) ? (
+                      <video
+                        src={n.product.image}
+                        controls
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <img
+                        src={n.product.image || "/default-news.png"}
+                        alt="news"
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </div>
+
+                  <div className="text-xs text-[#0000006B] mb-2">
+                    Uploaded On{" "}
+                    {new Date(n.product.date || Date.now()).toLocaleDateString()}
+                  </div>
+
+                  <h3 className="text-lg break-words line-clamp-1 flex-grow" title={n.product.MainHeadline}>
+                    {n.product.MainHeadline}
+                  </h3>
+
+                  <p className="text-sm text-gray-700 mb-1 line-clamp-1" title={n.product.Subheadline}>
+                    {n.product.Subheadline}
+                  </p>
+
+                  <p className="text-sm text-gray-600 h-[20px] line-clamp-2" title={n.product.Description}>
+                    {n.product.Description}
+                  </p>
+
+                  <div className="flex justify-between items-center mt-2">
+                    <button
+                      className="text-[#E60023] text-sm underline whitespace-nowrap"
+                      onClick={() => {
+                        setReadMoreNews(n);
+                        setShowReadMore(true);
+                      }}
+                    >
+                      Read More
+                    </button>
+                    <div className="flex space-x-2">
+                      <button className="text-[#12294A]" onClick={() => openEditModal(n)}>
+                        <CiEdit />
+                      </button>
+                      <button className="text-[#E60023]" onClick={() => handleDelete(n.product._id)}>
+                        <HiMiniTrash />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
         )}
+      </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`col-span-1 md:col-span-2 bg-[#12294A] text-white px-4 py-2 rounded transition ${isLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-[#0e1f3a]"}`}
-        >
-          {isLoading ? "Adding..." : buttonLabel}
-        </button>
-      </form>
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 px-4">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6 relative w-full max-w-6xl">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-2 right-3 text-gray-600 hover:text-black text-2xl font-bold"
+            >
+              &times;
+            </button>
+            <AddNewsForm
+              mode={modalMode}
+              onSubmit={handleModalSubmit}
+              buttonLabel={modalMode === "add" ? " Submit News" : "Save Changes"}
+              defaultValues={modalMode === "edit" ? {
+                serviceId: editingNews.serviceId,
+                subcategoryId: editingNews.subcategoryId,
+                MainHeadline: editingNews.product.MainHeadline,
+                Subheadline: editingNews.product.Subheadline,
+                Description: editingNews.product.Description,
+              } : {}}
+            />
+          </div>
+        </div>
+      )}
+
+      {showReadMore && readMoreNews && (
+        <ModalReadMore news={readMoreNews} onClose={() => setShowReadMore(false)} />
+      )}
     </div>
   );
 };
 
-export default AddNewsForm;
+export default AddNews;

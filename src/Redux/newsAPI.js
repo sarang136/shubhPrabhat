@@ -31,21 +31,30 @@ export const newsApi = createApi({
             invalidatesTags: ["post"],
         }),
 
-        updateNews: builder.mutation({
-            query: ({ id, updatedData }) => ({
-                url: `/admin/subcategories/${id}`,
+       updateNews: builder.mutation({
+  query: ({ id, updatedFormData }) => ({
+    url: `/admin/subcategories/${id}`,
+    method: 'PUT',
+    body: updatedFormData,
+  }),
+  invalidatesTags: ['post'],
+}),
+        updateNewsStatus: builder.mutation({
+            query: ({ id, status }) => ({
+                url: `/admin/subcategories/status/${id}`,
                 method: 'PUT',
-                body: updatedData,
+                body: { status },
             }),
-            invalidatesTags: ['post'],
         }),
+
     }),
 });
 
 
 
-export const {useAddNewsMutation,
+export const { useAddNewsMutation,
     useGetAllNewsQuery,
     useDeleteNewsMutation,
     useUpdateNewsMutation,
+    useUpdateNewsStatusMutation,
 } = newsApi;
