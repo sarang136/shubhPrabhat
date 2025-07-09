@@ -14,7 +14,7 @@ import {
   useDeleteNewsMutation,
   useAddNewsMutation,
   useUpdateNewsMutation,
-} from "../redux/newsAPI";
+} from "../Redux/newsAPI";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
