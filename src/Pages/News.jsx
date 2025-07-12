@@ -244,9 +244,9 @@ const handleModalSubmit = async (formData) => {
                       <button className="text-[#12294A]" onClick={() => openEditModal(n)}>
                         <CiEdit />
                       </button>
-                      <button className="text-[#E60023]" onClick={() => handleDelete(n.product._id)}>
+                      {/* <button className="text-[#E60023]" onClick={() => handleDelete(n.product._id)}>
                         <HiMiniTrash />
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 </div>

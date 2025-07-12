@@ -16,19 +16,19 @@ console.log(reporter)
 
   const news = newsList?.data || [];
 
-  // Count based on product.status
+  
   const approvedCount = news.filter(n => n.product?.status === 'approved').length;
   const rejectedCount = news.filter(n => n.product?.status === 'rejected').length;
   const pendingCount = news.filter(n => n.product?.status === 'pending').length;
   const totalCount = news.length;
 
-  // Dashboard card definitions
+
   const stats = [
     {
       title: 'Total News',
       icon: <HiOutlineDocumentText size={32} className="text-[#0b2447]" />,
       count: totalCount,
-      status: null, // No status filter for total
+      status: null, 
     },
     {
       title: 'Approved',
