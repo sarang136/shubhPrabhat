@@ -1,5 +1,3 @@
-// ✅ FINAL UPDATED AddNewsForm.jsx (with mode-aware validation and dynamic field update)
-
 import React, { useState, useRef, useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import { useSelector } from "react-redux";
@@ -42,7 +40,15 @@ const quillModules = {
   },
 };
 
-const quillFormats = ["bold", "italic", "underline", "list", "bullet", "link", "image"];
+const quillFormats = [
+  "bold",
+  "italic",
+  "underline",
+  "list",
+  "bullet",
+  "link",
+  "image",
+];
 
 const DropdownCheckbox = ({ label, options, selected, setSelected }) => {
   const [open, setOpen] = useState(false);
@@ -108,7 +114,8 @@ const AddNewsForm = ({
   const { user } = useSelector((state) => state.auth);
   const reporterId = user?.reporter?._id;
   const { data: categoryData = [] } = useGetAllCategoriesQuery();
-  const { data: subCategoryData = {}, isLoading: isFetching } = useGetAllSubCategoriesQuery();
+  const { data: subCategoryData = {}, isLoading: isFetching } =
+    useGetAllSubCategoriesQuery();
 
   const subcategories = subCategoryData?.subcategories || [];
 
@@ -118,9 +125,15 @@ const AddNewsForm = ({
   const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState(
     defaultValues.subcategoryId ? [defaultValues.subcategoryId] : []
   );
-  const [mainHeadline, setMainHeadline] = useState(defaultValues.MainHeadline || "");
-  const [subheadline, setSubheadline] = useState(defaultValues.Subheadline || "");
-  const [description, setDescription] = useState(defaultValues.Description || "");
+  const [mainHeadline, setMainHeadline] = useState(
+    defaultValues.MainHeadline || ""
+  );
+  const [subheadline, setSubheadline] = useState(
+    defaultValues.Subheadline || ""
+  );
+  const [description, setDescription] = useState(
+    defaultValues.Description || ""
+  );
   const [mediaFile, setMediaFile] = useState(null);
 
   const buildSubcategoryMap = () => {
@@ -137,7 +150,15 @@ const AddNewsForm = ({
     const formData = new FormData();
 
     if (mode === "add") {
-      if (!selectedCategoryIds.length || !Object.keys(subcategoryMap).length || !mainHeadline || !subheadline || !description || !mediaFile || !reporterId) {
+      if (
+        !selectedCategoryIds.length ||
+        !Object.keys(subcategoryMap).length ||
+        !mainHeadline.trim() ||
+        !subheadline.trim() ||
+        !description.trim() ||
+        !mediaFile ||
+        !reporterId
+      ) {
         alert("Missing required fields for adding news.");
         return;
       }
@@ -149,6 +170,7 @@ const AddNewsForm = ({
       formData.append("image", mediaFile);
       formData.append("reporterId", reporterId);
     } else {
+      // edit mode — only append changed fields
       if (selectedCategoryIds.length)
         formData.append("serviceIds", JSON.stringify(selectedCategoryIds));
       if (Object.keys(subcategoryMap).length)
@@ -222,6 +244,25 @@ const AddNewsForm = ({
             className="h-[200px] overflow-auto"
           />
         </div>
+
+        {/* ✅ Media preview before upload */}
+        {!mediaFile && defaultValues?.image && (
+          <div className="col-span-1 lg:col-span-2">
+            {defaultValues.image.endsWith(".mp4") ? (
+              <video
+                src={defaultValues.image}
+                controls
+                className="w-full rounded mb-4 max-h-[300px] object-contain"
+              />
+            ) : (
+              <img
+                src={defaultValues.image}
+                alt="Existing"
+                className="w-full rounded mb-4 max-h-[300px] object-contain"
+              />
+            )}
+          </div>
+        )}
 
         <label className="col-span-1 lg:col-span-2 border border-[#cdd1d5] rounded py-3 flex flex-col mt-2 justify-center items-center text-gray-500 gap-2 cursor-pointer">
           <FiUpload size={20} />

@@ -6,10 +6,13 @@ import TotalNews from '../Pages/TotalNews.jsx';
 import SignIn from '../Pages/SignIn.jsx';
 import SignUp from '../Pages/SignUp2.jsx';
 import Blogs from '../Pages/Blogs.jsx';
+import { useSelector } from 'react-redux';
 // import AddNews from '../Pages/AddNews';
 
 const AppRoutes = () => {
   const location = useLocation();
+  const selector = useSelector((state) => state.auth)
+  // console.log(selector.user.reporter.approvedFor);
 
   // Auth routes - these should NOT show AdminLayout
   const authRoutes = ['/', '/signin', '/signup'];
