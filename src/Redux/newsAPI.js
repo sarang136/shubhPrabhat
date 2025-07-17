@@ -31,14 +31,14 @@ export const newsApi = createApi({
             invalidatesTags: ["post"],
         }),
 
-       updateNews: builder.mutation({
-  query: ({ id, updatedFormData }) => ({
-    url: `/admin/subcategories/${id}`,
-    method: 'PUT',
-    body: updatedFormData,
-  }),
-  invalidatesTags: ['post'],
-}),
+        updateNews: builder.mutation({
+            query: ({ id, updatedFormData }) => ({
+                url: `/admin/subcategories/${id}`,
+                method: 'PUT',
+                body: updatedFormData,
+            }),
+            invalidatesTags: ['post'],
+        }),
         updateNewsStatus: builder.mutation({
             query: ({ id, status }) => ({
                 url: `/admin/subcategories/status/${id}`,

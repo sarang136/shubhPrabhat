@@ -24,7 +24,7 @@ export const postApi = createApi({
       query: (register) => ({
         url: '/reporter/auth/register',
         method: 'POST',
-        body: register, 
+        body: register,
       }),
       invalidatesTags: ['post'],
     }),
@@ -46,6 +46,24 @@ export const postApi = createApi({
       }),
     }),
 
+    updateReporterProfile: builder.mutation({
+      query: ({ id, formData }) => ({
+        url: `/reporter/auth/updateProfile/${id}`,
+        method: 'PUT',
+        body: formData,
+      }),
+    }),
+
+    getReporter: builder.query({
+      query: (id) => ({
+        url: `/reporter/auth/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ["post"],
+      
+    })
+
+
   }),
 });
 
@@ -54,4 +72,6 @@ export const {
   useRegisterMutation,
   useVerifyMutation,
   useLogoutMutation,
+  useUpdateReporterProfileMutation,
+  useGetReporterQuery,
 } = postApi;
