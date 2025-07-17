@@ -87,10 +87,10 @@ const Navbar = () => {
         <div className="p-6 flex flex-col h-full">
           <div className="flex items-center justify-between mb-6 border-b py-2">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-2xl">
-                <FaUser />
+              <div className="w-12 h-12 rounded-full bg-[#1E3A8A] flex items-center justify-center text-white text-2xl overflow-hidden">
+               <img className='h-full w-full' src={reporter.ReporterProfile}/>
               </div>
-              <h2 className="text-xl font-semibold">{reporter?.name || 'John Doe'}</h2>
+              <h2 className="text-xl font-semibold">{reporter?.name}</h2>
             </div>
           </div>
 
