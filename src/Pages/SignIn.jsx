@@ -59,13 +59,15 @@ function SignUp() {
       </div>
 
       {/* Right Panel */}
-      <div className="flex-1 flex flex-col justify-center items-center bg-white px-6 py-12">
-        <h1 className="text-5xl font-normal text-red-600 mb-4 text-center w-full">
-          शुभ प्रभात
-        </h1>
-        <h2 className="text-2xl font-normal text-[#0F2248] mb-6 text-center w-full">
-          LOGIN
+      <div className="flex-1 flex flex-col justify-center items-center bg-white px-6 py-12 gap-8">
+      
+         <div className="text-5xl font-bold text-red-600  flex justify-center text-center w-full gap-8 ">
+         <img className="h-[100px]" src="./main-logo.jpg"/>
+        </div>
+        <h2 className="text-2xl font-bold text-[#0F2248] mb-6 text-center w-full">
+          REPORTER  LOGIN
         </h2>
+    
         {message?.message && (
           <p className="text-sm text-gray-500 p-2 text-center w-full">
             {message.message}

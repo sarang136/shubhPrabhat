@@ -80,11 +80,11 @@ function SignUp() {
 
       {/* Right Panel */}
       <div className="flex-1 flex flex-col justify-center items-center bg-white px-6 py-6">
-        <h1 className="text-5xl font-normal text-red-600 mb-4 text-center w-full">
-          शुभ प्रभात
-        </h1>
-        <h2 className="text-2xl font-normal text-[#0F2248] mb-6 text-center w-full">
-          SIGN UP
+        <div className="text-5xl font-normal text-red-600 mb-4 text-center w-full flex justify-center">
+          <img className='h-[100px]' src='./main-logo.jpg'/>
+        </div>
+        <h2 className="text-2xl font-bold text-[#0F2248] mb-6 text-center w-full">
+            REPORTER SIGN UP
         </h2>
 
         <form onSubmit={handleSubmit} className="w-full max-w-md space-y-6">
