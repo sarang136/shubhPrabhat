@@ -266,13 +266,15 @@ const Navbar = () => {
   const basePath = `/${location.pathname.split('/')[1]}`;
   const pageTitle = pathTitleMap[basePath] || 'Dashboard';
 
+  
+
   return (
     <div className="relative w-full font-marathi bg-[#12294A]">
       {/* Top Navbar */}
       <div className="flex justify-between items-center px-4 sm:px-6 md:px-10 py-4 sm:py-5">
         <FaBars className="text-white text-2xl sm:hidden cursor-pointer" onClick={toggleNavSidebar} />
         <h1 className="text-white text-xl sm:text-2xl md:text-3xl font-normal">{pageTitle}</h1>
-        <FaUserCircle className="text-white text-2xl sm:text-3xl cursor-pointer" onClick={toggleProfileSidebar} />
+        <img src={logggedReporter?.ReporterProfile} className="h-[50px] rounded-full w-[50px] cursor-pointer" onClick={toggleProfileSidebar} />
       </div>
 
       {/* Top Dropdown Nav */}

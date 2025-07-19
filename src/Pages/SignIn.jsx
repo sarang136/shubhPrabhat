@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 
 function SignUp() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [contactNo, setContactNo] = useState("");
   const [otp, setOtp] = useState("");
   const [reporterId, setReporterId] = useState("");
   const location = useLocation();
@@ -15,11 +15,11 @@ function SignUp() {
   const [addPost, { isLoading: verifyEmailLoading, error: verifyError }] = useAddPostMutation();
   const [verify, { isLoading: isLoginLoading, error: loginError }] = useVerifyMutation();
 
-  const isEmailValid = email.includes("@") && email.includes(".com");
+  const isEmailValid = contactNo.includes("") && contactNo.includes("");
 
   const handleVerify = async () => {
     try {
-      const response = await addPost({ email }).unwrap();
+      const response = await addPost({ contactNo }).unwrap();
       toast.success(response.message || "OTP sent");
       if (response?.reporterId) {
         setReporterId(response.reporterId);
@@ -33,7 +33,7 @@ function SignUp() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await verify({ email, otp, reporterId }).unwrap();
+      const response = await verify({ contactNo, otp, reporterId }).unwrap();
       toast.success(response.message || "Successfully Logged In");
       navigate("/dashboard");
     } catch (err) {
@@ -78,10 +78,10 @@ function SignUp() {
           {/* Email input + Verify OTP */}
           <div className="relative w-full">
             <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="number"
+              placeholder="Number"
+              value={contactNo}
+              onChange={(e) => setContactNo(e.target.value)}
               required
               className="w-full h-12 px-4 pr-28 border border-[#0F2248] rounded-full text-[#0F2248] placeholder-[#667085] focus:outline-none focus:ring-2 focus:ring-[#0F2248]"
             />
